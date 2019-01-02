@@ -17,63 +17,62 @@ const generateData = (n, len) => {
     })
 }
 
-let lib = {}
-let steps = []
-
-const getData = (obj, paths) => {
-    let p = [...paths]
-    let key = p.shift()
-    if (key) {
-        if (obj[key]) {
-            return getData(obj[key], p)
-        } else {
-            return null
-        }
+const fetchData = (url) => {
+    const cacheData = (key, data) => {
+        localStorage.setItem(key, JSON.stringify(data))
+        return data
+    }
+    if (localStorage.getItem(url)) {
+        return Promise.resolve(JSON.parse(localStorage.getItem(url)))
     } else {
-        return obj
+        return fetch(url)
+            .then(res => res.json())
+            .then(data => cacheData(url, data))
     }
 }
-const injectData = (step, item, cb) => {
-    console.log(step, item)
+const processLibraryData = (items) => {
+    return items.map(([title, desc, meta]) => {
+        return { id: title, title, desc, meta }
+    })
+}
+const processLibraryItemData = (d) => {
+    return d.assets.map(({version, files}) => {
+        return { id: version, title: version }
+    })
+}
+const injectData = (step, item, results, cb) => {
+    const API = 'https://api.bootcdn.cn/libraries'
 
-    if (item) steps.push(item.id)
     if (step === 0) {
-        fetch('https://api.bootcdn.cn/libraries.min.json')
-            .then(res => res.json())
-            .then(items => {
-                const data = items.map(([title, desc, meta]) => {
-                    lib[title] = {}
-                    return { id: title, title, desc, meta }
-                })
-                cb(data)
-            })
+        fetchData(`${API}.min.json`)
+            .then(processLibraryData)
+            .then(cb)
     } else if (step === 1) {
-        fetch(`https://api.bootcdn.cn/libraries/${item.id}.json`)
-            .then(res => res.json())
-            .then(d => {
-                console.log('version', d)
-                const data = d.assets.map(({version, files}) => {
-                    lib[item.id][version] = files
-                    return { id: version, title: version }
-                })
-                // lib[d.id] = d.assets
-                cb(data)
-            })
-        // setTimeout(() => {
-        //     cb(generateData(step, 1000))
-        // }, Math.random() * 500)
+        fetchData(`${API}/${item.id}.json`)
+            .then(processLibraryItemData)
+            .then(cb)
     } else if (step === 2) {
-        const items = getData(lib, steps).map(item => {
-            return { id: item, title: item }
-        })
+        const paths = results.filter(d => d !== null).map(d => d.id)
+        const lib = JSON.parse(localStorage.getItem(`${API}/${paths[0]}.json`))
+
+        const items = lib.assets
+            .find(({version}) => version === paths[1])
+            .files.map(file => {
+                return { id: file, title: file }
+            })
         cb(items)
     }
 }
-
+const done = (res) => {
+    const [name, version, file] = res.map(r => r.id)
+    const url = `https://cdn.bootcss.com/${name}/${version}/${file}`
+    console.log(url)
+}
 
 ReactDOM.render(
 <CommandPalette step={0} 
     async={injectData}
+    done={done}
     data={[
         [],
         [],

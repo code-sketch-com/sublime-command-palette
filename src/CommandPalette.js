@@ -16,7 +16,8 @@ class CommandPalette extends Component {
         placeholder: '',
         async: false,
         // primaryKey
-        pk: 'id'
+        pk: 'id',
+        done: () => {}
     }
     constructor(props) {
         super(props)
@@ -56,7 +57,7 @@ class CommandPalette extends Component {
                 <div className="cp-result">
                     <ul>
                         {items.slice(0, 50).map((item, idx) => 
-                            <li key={`${item[pk]}${idx}`} 
+                            <li key={`${item[pk]}-${idx}`} 
                                 onClick={() => this.handleClick(item)} 
                                 className={getActiveCls(item)}>
                                 <h5>
@@ -112,7 +113,7 @@ class CommandPalette extends Component {
         const len = items.length
         const dest = items.findIndex(item => item[pk] === current[pk])
         let curr = { ...current }
-        // console.log(dest)
+
         if (key === 'ArrowUp') {
             if (dest <= 0) {
                 curr = { ...items[len - 1] }
@@ -160,7 +161,7 @@ class CommandPalette extends Component {
         if (typeof async !== 'function') 
             throw new Error('async type must pass a hook props [async]')
 
-        async(step, this.state.current, data => {
+        async(step, this.state.current, this.results, data => {
             this.data[step] = data
             this.pick(step, cb)
         })
@@ -175,18 +176,20 @@ class CommandPalette extends Component {
                 current: this.items[this.defaultSelected]
             }, () => {
                 this.onSelect()
+                this.scrollToEl()
                 if (cb) cb()
             })
         })
     }
 
     done() {
-        console.log('done', this.results.map(d => d[this.props.pk]))
+        // console.log('done', this.results.map(d => d[this.props.pk]))
         this.setState({
             keyword: '',
             active: false,
             step: this.props.step
         })
+        this.props.done(copy(this.results))
     }
     onSelect() {
         const { step, current } = this.state
