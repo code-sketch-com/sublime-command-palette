@@ -13,6 +13,11 @@
   "eslintConfig": {
     "extends": "react-app"
   },
+  "babel": {
+    "plugins": [
+      "@babel/plugin-proposal-class-properties"
+    ]
+  },
   "browserslist": [
     ">0.2%",
     "not dead",
@@ -20,10 +25,12 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "@babel/core": "^7.2.2",
+    "@babel/plugin-proposal-class-properties": "^7.2.3",
     "mockjs": "^1.0.1-beta3",
     "node-sass": "^4.11.0",
-    "react-scripts": "2.1.2",
     "react": "^16.7.0",
-    "react-dom": "^16.7.0"
+    "react-dom": "^16.7.0",
+    "react-scripts": "2.1.2"
   }
 }
