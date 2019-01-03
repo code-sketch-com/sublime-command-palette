@@ -14,19 +14,18 @@ class ListView extends Component {
         }
     }
     render() {
-        const { pk, activeCls, current, itemsPerPage, className, items } = this.props
-        const activeFrame = this.state.activeFrame
+        const { pk, activeCls, current, className } = this.props
         const getActiveCls = ({id}) => id === current[pk] ? activeCls : ''
-        const destIdx = itemsPerPage * (activeFrame + 1)
+        const items = this.slice()
 
         return (
             <div className={className} 
                 ref={el => this.viewPort = el}
                 onScroll={this.handleScroll.bind(this)}>
                 <ul ref={el => this.list = el}>
-                    {items.slice(0, destIdx).map((item, idx) => 
+                    {items.map((item, idx) => 
                         <li key={`${item[pk]}-${idx}`} 
-                            onClick={() => this.props.handleClick(item)} 
+                            onClick={(e) => this.props.handleClick(item, e)} 
                             className={getActiveCls(item)}>
                             <h5>
                                 <span dangerouslySetInnerHTML={this.props.hlContent(item.title)}></span>
@@ -39,8 +38,18 @@ class ListView extends Component {
             </div>
         )
     }
+    slice() {
+        const idx = this.props.itemsPerPage * (this.state.activeFrame + 1)
+        return this.props.items.slice(0, idx)
+    }
     componentDidUpdate() {
         this.frames = Math.ceil(this.props.items.length / this.props.itemsPerPage)
+
+        const { pk, current } = this.props
+        const items = this.slice()
+        const len = items.length
+        const idx = items.findIndex(item => item[pk] === current[pk])
+        this.props.frameUpdate(items, len, idx)
     }
     handleScroll() {
         const fullHeight = this.list.clientHeight
@@ -107,7 +116,8 @@ class CommandPalette extends Component {
         const cmdStyle = { display: active ? 'block' : 'none' }
 
         return (
-            <div className="cmd-palette" style={cmdStyle}>
+            <div className="cmd-palette" onClick={e => e.stopPropagation()}
+                style={cmdStyle}>
                 <div className="cp-form">
                     <input type="text" spellCheck={false}
                         placeholder={placeholder}
@@ -117,6 +127,7 @@ class CommandPalette extends Component {
                         onKeyUp={this.handleTyping.bind(this)} ref={el => this.input = el} />
                 </div>
                 <ListView className="cp-result" pk={pk} activeCls={activeCls}
+                    frameUpdate={this.frameUpdate.bind(this)}
                     items={items} keyword={keyword} current={current}
                     hlContent={this.hlContent.bind(this)}
                     handleClick={this.handleClick.bind(this)} />
@@ -149,7 +160,10 @@ class CommandPalette extends Component {
         }
     }
     handleClick(current) {
-        this.setState({ current }, () => this.handlePick())
+        this.setState({ current }, () => {
+            this.updateResults()
+            this.handlePick()
+        })
     }
 
     toggle() {
@@ -159,33 +173,42 @@ class CommandPalette extends Component {
             }
         })
     }
+    frameUpdate(items, len, idx) {
+        this.vItems = items
+        this.vLen = len
+        this.vIdx = idx
+    }
     navigate(key) {
-        const { items, current, pk } = this.state
-        const len = items.length
-        const dest = items.findIndex(item => item[pk] === current[pk])
-        let curr = { ...current }
+        const items = this.vItems
+        const len = this.vLen
+        const idx = this.vIdx
+
+        let current = {}
 
         if (key === 'ArrowUp') {
-            if (dest <= 0) {
-                curr = { ...items[len - 1] }
+            if (idx <= 0) {
+                current = { ...items[len - 1] }
             }
-            if (dest > 0) {
-                curr = { ...items[dest - 1] }
+            if (idx > 0) {
+                current = { ...items[idx - 1] }
             }
         }
         if (key === 'ArrowDown') {
-            if (dest + 1 >= len) {
-                curr = { ...items[0] }
+            if (idx + 1 >= len) {
+                current = { ...items[0] }
             }
-            if (dest + 1 < len) {
-                curr = { ...items[dest + 1] }
+            if (idx + 1 < len) {
+                current = { ...items[idx + 1] }
             }
         }
         
-        this.setState({ current: curr }, () => {
-            this.results[this.state.step] = { ...this.state.current }
+        this.setState({ current }, () => {
+            this.updateResults()
             this.scrollToEl()
         })
+    }
+    updateResults() {
+        this.results[this.state.step] = { ...this.state.current }
     }
     scrollToEl() {
         let el = document.querySelector('.cmd-palette .cp-result .active')
@@ -265,7 +288,7 @@ class CommandPalette extends Component {
     }
     filter() {
         const items = this.items.filter(item => item.title.includes(this.state.keyword))
-        this.setState({ items, current: { ...items[0] } })
+        this.setState({ items, current: { ...items[0] } }, this.updateResults.bind(this))
     }
 
     stopPrevent(e) {
@@ -273,17 +296,18 @@ class CommandPalette extends Component {
         e.preventDefault()
     }
     handleDocClick(e) {
-        const parentIsMe = (node) => {
+        const parentIsCP = (node) => {
             if (node.classList && node.classList.contains('cmd-palette')) {
                 return true
             } else {
                 while(node.parentNode) {
-                    return parentIsMe(node.parentNode)
+                    return parentIsCP(node.parentNode)
                 }
+                return false
             }
         }
 
-        if (!parentIsMe(e.target)) {
+        if (!parentIsCP(e.target)) {
             this.setState({ active: false })
         }
     }
@@ -297,7 +321,7 @@ class CommandPalette extends Component {
     }
     bindKeyMap() {
         document.addEventListener('keydown', this.handleDocKeyDown.bind(this))
-        document.addEventListener('click', this.handleDocClick.bind(this))
+        document.addEventListener('click', this.handleDocClick.bind(this), true)
     }
     unbindKeyMap() {
         document.removeEventListener('keydown', this.handleDocKeyDown.bind(this))
