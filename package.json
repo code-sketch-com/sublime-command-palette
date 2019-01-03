@@ -1,18 +1,14 @@
 {
-  "name": "command-palette",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "react": "^16.7.0",
-    "react-dom": "^16.7.0",
-    "react-scripts": "2.1.2"
-  },
+  "name": "sublime-command-palette",
+  "version": "0.0.1",
+  "main": "dist/index.js",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "fmt": "prettier src/*.* --tab-width 4 --no-semi --single-quote --write"
+    "fmt": "prettier src/*.* --tab-width 4 --no-semi --single-quote --write",
+    "pub": "cp src/CommandPalette.js dist/index.js && scss src/CommandPalette.scss dist/index.css --sourcemap=none"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -25,6 +21,9 @@
   ],
   "devDependencies": {
     "mockjs": "^1.0.1-beta3",
-    "node-sass": "^4.11.0"
+    "node-sass": "^4.11.0",
+    "react-scripts": "2.1.2",
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0"
   }
 }

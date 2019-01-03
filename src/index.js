@@ -1,7 +1,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import './index.css'
 import CommandPalette from './CommandPalette'
+
+import './CommandPalette.scss'
 
 var Mock = require('mockjs')
 
@@ -83,3 +84,5 @@ ReactDOM.render(
     ]} 
 />, 
 document.getElementById('root'))
+
+
