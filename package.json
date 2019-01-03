@@ -1,6 +1,6 @@
 {
   "name": "sublime-command-palette",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "dist/index.js",
   "scripts": {
     "start": "react-scripts start",
