@@ -1,36 +1,30 @@
 {
   "name": "sublime-command-palette",
-  "version": "0.0.2",
+  "version": "0.0.10",
   "main": "dist/index.js",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "fmt": "prettier src/*.* --tab-width 4 --no-semi --single-quote --write",
-    "pub": "cp src/CommandPalette.js dist/index.js && scss src/CommandPalette.scss dist/index.css --sourcemap=none"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
+    "start": "parcel index.html -p 2047",
+    "build": "rm -rf dist && rollup -c && parcel build src/CommandPalette.scss -o dist/index.css --no-source-maps",
+    "fmt": "prettier --tab-width 4 --no-semi --single-quote --write src/*.*"
   },
   "babel": {
+    "presets": [
+      "@babel/preset-react"
+    ],
     "plugins": [
       "@babel/plugin-proposal-class-properties"
     ]
   },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ],
   "devDependencies": {
     "@babel/core": "^7.2.2",
-    "@babel/plugin-proposal-class-properties": "^7.2.3",
+    "@babel/plugin-proposal-class-properties": "^7.3.0",
+    "@babel/preset-react": "^7.0.0",
+    "cssnano": "^4.1.8",
     "mockjs": "^1.0.1-beta3",
     "node-sass": "^4.11.0",
     "react": "^16.7.0",
     "react-dom": "^16.7.0",
-    "react-scripts": "2.1.2"
+    "rollup-plugin-babel": "^4.3.2",
+    "rollup-plugin-node-resolve": "^4.0.0"
   }
 }

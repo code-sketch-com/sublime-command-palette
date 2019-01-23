@@ -1,11 +1,8 @@
-import React, { Component } from 'react'
+import React, { Component} from 'react'
 
 const copy = (obj) => JSON.parse(JSON.stringify(obj))
 
 class ListView extends Component {
-    static defaultProps = {
-        itemsPerPage: 10
-    }
     constructor(props) {
         super(props)
 
@@ -14,7 +11,7 @@ class ListView extends Component {
         }
     }
     render() {
-        const { pk, activeCls, current, className } = this.props
+        const { pk, activeCls, current, className, alias } = this.props
         const getActiveCls = ({id}) => id === current[pk] ? activeCls : ''
         const items = this.slice()
 
@@ -23,6 +20,12 @@ class ListView extends Component {
                 ref={el => this.viewPort = el}
                 onScroll={this.handleScroll.bind(this)}>
                 <ul ref={el => this.list = el}>
+                    <li className="alias">
+                        {alias.map(item => (
+                            <div onClick={(e) => this.props.handleAliasClick(item, e)} 
+                                key={item.name}>{item.name}</div>
+                        ))}
+                    </li>
                     {items.map((item, idx) => 
                         <li key={`${item[pk]}-${idx}`} 
                             onClick={(e) => this.props.handleClick(item, e)} 
@@ -39,7 +42,7 @@ class ListView extends Component {
         )
     }
     slice() {
-        const idx = this.props.itemsPerPage * (this.state.activeFrame + 1)
+        const idx = (this.props.itemsPerPage || 50) * (this.state.activeFrame + 1)
         return this.props.items.slice(0, idx)
     }
     componentDidUpdate() {
@@ -88,6 +91,14 @@ class CommandPalette extends Component {
         defaultSelected: 0,
         placeholder: '',
         async: false,
+        alias: [
+            { name: 'React', result: '<script src="https://cdn.bootcss.com/react/16.4.0/umd/react.production.min.js"></script>\n<script src="https://cdn.bootcss.com/react-dom/16.4.0/umd/react-dom.production.min.js"></script>' },
+            { name: 'Vue', result: '<script src="https://cdn.bootcss.com/vue/2.5.16/vue.js"></script>' },
+            { name: 'jQuery', result: '<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>' },
+            { name: 'Bootstrap', result: '<link rel="stylesheet" href="https://cdn.bootcss.com/twitter-bootstrap/4.1.1/css/bootstrap.css">\n<script src="https://cdn.bootcss.com/twitter-bootstrap/4.1.1/js/bootstrap.js"></script>' },
+            { name: 'Semantic-ui', result: '<link rel="stylesheet" href="https://cdn.bootcss.com/semantic-ui/2.3.1/semantic.css">\n<script src="https://cdn.bootcss.com/semantic-ui/2.3.1/semantic.js"></script>' },
+            
+        ],
         done: () => {}
     }
     constructor(props) {
@@ -111,7 +122,7 @@ class CommandPalette extends Component {
     }
     render() {
         const { current, keyword, active, items } = this.state
-        const { activeCls, placeholder, pk } = this.props
+        const { activeCls, placeholder, pk, alias } = this.props
 
         const cmdStyle = { display: active ? 'block' : 'none' }
 
@@ -126,11 +137,12 @@ class CommandPalette extends Component {
                         onChange={this.handleChange.bind(this)}
                         onKeyUp={this.handleTyping.bind(this)} ref={el => this.input = el} />
                 </div>
-                <ListView className="cp-result" pk={pk} activeCls={activeCls}
+                <ListView alias={alias} className="cp-result" pk={pk} activeCls={activeCls}
                     frameUpdate={this.frameUpdate.bind(this)}
                     items={items} keyword={keyword} current={current}
                     hlContent={this.hlContent.bind(this)}
-                    handleClick={this.handleClick.bind(this)} />
+                    handleClick={this.handleClick.bind(this)}
+                    handleAliasClick={this.handleAliasClick.bind(this)} />
             </div>
         )
     }
@@ -165,10 +177,18 @@ class CommandPalette extends Component {
             this.handlePick()
         })
     }
+    handleAliasClick(alias) {
+        this.props.aliasClick(alias)
+    }
 
     toggle() {
         this.setState({ active: !this.state.active }, () => {
             if (this.state.active) {
+                this.setState({
+                    current: {
+                        ...this.state.items[0]
+                    }
+                })
                 this.input.focus()
             }
         })
@@ -223,8 +243,8 @@ class CommandPalette extends Component {
         }
     }
     pickStep(step, cb) {
-        if (step === this.rLen) return this.done()
-        if (step >= this.rLen) return
+        if (step === this.rLen && this.state.current.id) return this.done()
+        if (step > this.rLen) return this.reset()
 
         if (this.props.async) {
             this.pickAsync(step, cb)
@@ -236,11 +256,17 @@ class CommandPalette extends Component {
         const { async } = this.props
         if (typeof async !== 'function') 
             throw new Error('async type must pass a hook props [async]')
-
-        async(step, this.state.current, this.results, data => {
-            this.data[step] = data
-            this.pick(step, cb)
-        })
+        if (!this.state.current.id && step > 0) {
+            this.loading = false
+        } else {
+            async(step, this.state.current, this.results, data => {
+                this.data[step] = data
+                this.pick(step, cb)
+            }, (err) => {
+                console.error(err)
+                this.loading = false
+            })
+        }
     }
     pick(step, cb) {
         this.setState({
@@ -259,13 +285,19 @@ class CommandPalette extends Component {
     }
 
     done() {
+        this.props.done(copy(this.results))
+        this.reset()
+    }
+    reset() {
+        this.loading = false
         // console.log('done', this.results.map(d => d[this.props.pk]))
         this.setState({
             keyword: '',
             active: false,
+            items: this.data[this.props.step],
+            current: this.items[this.defaultSelected],
             step: this.props.step
         })
-        this.props.done(copy(this.results))
     }
     onSelect() {
         const { step, current } = this.state
@@ -318,6 +350,9 @@ class CommandPalette extends Component {
                 this.toggle()
             }
         }
+        if (e.key === 'Escape') {
+            this.reset()
+        }
     }
     bindKeyMap() {
         document.addEventListener('keydown', this.handleDocKeyDown.bind(this))
@@ -333,13 +368,13 @@ class CommandPalette extends Component {
     componentDidMount() {
         const props = this.props
 
-        if (props.active) {
+        // if (props.active) {
             this.pickStep(0, () => {
                 if (props.autoFocus) {
                     this.input.focus()
                 }
             })
-        }
+        // }
 
         this.bindKeyMap()
 
@@ -347,6 +382,7 @@ class CommandPalette extends Component {
         this.data = copy(props.data)
 
         this.setState({
+            alias: props.alias,
             step: props.step,
             items: this.data[props.step],
             active: props.active,

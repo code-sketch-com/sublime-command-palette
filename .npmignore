@@ -1,6 +1,6 @@
+.cache
 build
 node_modules
-src
 public
 .sass-cache
 # dependencies

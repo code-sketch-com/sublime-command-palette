@@ -4,11 +4,16 @@ $cp-padding: 4px;
 $cp-form-height: 30px;
 
 .cmd-palette {
-    h5, ul, p { margin: 0; padding: 0; }
+    h5,
+    ul,
+    p {
+        margin: 0;
+        padding: 0;
+    }
 
     position: absolute;
     z-index: 10;
-    background: #EBEDEF;
+    background: #ebedef;
     top: 5px;
     left: 50%;
     width: $cp-width;
@@ -19,9 +24,26 @@ $cp-form-height: 30px;
 
     box-sizing: border-box;
 
-    * { box-sizing: border-box; }
-    ul { list-style: none; }
-
+    * {
+        box-sizing: border-box;
+    }
+    ul {
+        list-style: none;
+    }
+    .alias {
+        display: flex;
+        justify-content: space-evenly;
+        > div {
+            font-size: 12px;
+            border: 1px solid #ccc;
+            padding: 2px 10px;
+            border-radius: 2px;
+            cursor: pointer;
+            &:hover {
+                background: #fff;
+            }
+        }
+    }
     .cp-form {
         input {
             width: 100%;
@@ -53,7 +75,7 @@ $cp-form-height: 30px;
                 white-space: nowrap;
                 height: 1.5em;
                 line-height: 1.5em;
-                overflow:hidden;
+                overflow: hidden;
                 margin-bottom: $cp-padding;
                 display: flex;
                 justify-content: space-between;
@@ -72,12 +94,14 @@ $cp-form-height: 30px;
                 font-size: 12px;
                 max-height: 2 * $desc-line-height;
                 line-height: $desc-line-height;
-                overflow:hidden;
+                overflow: hidden;
             }
             h5:last-child {
                 margin-bottom: 0;
             }
-            &.active { background: #C7CBD1; }
+            &.active {
+                background: #c7cbd1;
+            }
         }
     }
 }
