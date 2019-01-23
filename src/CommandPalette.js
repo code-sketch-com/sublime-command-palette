@@ -20,12 +20,15 @@ class ListView extends Component {
                 ref={el => this.viewPort = el}
                 onScroll={this.handleScroll.bind(this)}>
                 <ul ref={el => this.list = el}>
-                    <li className="alias">
-                        {alias.map(item => (
-                            <div onClick={(e) => this.props.handleAliasClick(item, e)} 
-                                key={item.name}>{item.name}</div>
-                        ))}
-                    </li>
+                    {alias.length > 0 && (
+                        <li className="alias">
+                            {alias.map(item => (
+                                <div onClick={(e) => this.props.handleAliasClick(item, e)} 
+                                    key={item.name}>{item.name}</div>
+                            ))}
+                        </li>
+                    )}
+                    
                     {items.map((item, idx) => 
                         <li key={`${item[pk]}-${idx}`} 
                             onClick={(e) => this.props.handleClick(item, e)} 
@@ -80,7 +83,7 @@ class ListView extends Component {
 class CommandPalette extends Component {
     static defaultProps = {
         step: 0,
-        active: true,
+        active: false,
         data: [[]],
         // primaryKey
         pk: 'id',
@@ -91,14 +94,7 @@ class CommandPalette extends Component {
         defaultSelected: 0,
         placeholder: '',
         async: false,
-        alias: [
-            { name: 'React', result: '<script src="https://cdn.bootcss.com/react/16.4.0/umd/react.production.min.js"></script>\n<script src="https://cdn.bootcss.com/react-dom/16.4.0/umd/react-dom.production.min.js"></script>' },
-            { name: 'Vue', result: '<script src="https://cdn.bootcss.com/vue/2.5.16/vue.js"></script>' },
-            { name: 'jQuery', result: '<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>' },
-            { name: 'Bootstrap', result: '<link rel="stylesheet" href="https://cdn.bootcss.com/twitter-bootstrap/4.1.1/css/bootstrap.css">\n<script src="https://cdn.bootcss.com/twitter-bootstrap/4.1.1/js/bootstrap.js"></script>' },
-            { name: 'Semantic-ui', result: '<link rel="stylesheet" href="https://cdn.bootcss.com/semantic-ui/2.3.1/semantic.css">\n<script src="https://cdn.bootcss.com/semantic-ui/2.3.1/semantic.js"></script>' },
-            
-        ],
+        alias: [],
         done: () => {}
     }
     constructor(props) {
@@ -179,6 +175,7 @@ class CommandPalette extends Component {
     }
     handleAliasClick(alias) {
         this.props.aliasClick(alias)
+        this.reset()
     }
 
     toggle() {

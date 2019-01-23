@@ -83,12 +83,21 @@ const aliasClick = (item) => {
     console.log(item.result)
 }
 
+const alias = [
+    { name: 'React', result: '<script src="https://cdn.bootcss.com/react/16.4.0/umd/react.production.min.js"></script>\n<script src="https://cdn.bootcss.com/react-dom/16.4.0/umd/react-dom.production.min.js"></script>' },
+    { name: 'Vue', result: '<script src="https://cdn.bootcss.com/vue/2.5.16/vue.js"></script>' },
+    { name: 'jQuery', result: '<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>' },
+    { name: 'Bootstrap', result: '<link rel="stylesheet" href="https://cdn.bootcss.com/twitter-bootstrap/4.1.1/css/bootstrap.css">\n<script src="https://cdn.bootcss.com/twitter-bootstrap/4.1.1/js/bootstrap.js"></script>' },
+    { name: 'Semantic-ui', result: '<link rel="stylesheet" href="https://cdn.bootcss.com/semantic-ui/2.3.1/semantic.css">\n<script src="https://cdn.bootcss.com/semantic-ui/2.3.1/semantic.js"></script>' },
+]
+
 ReactDOM.render(
     <CommandPalette
         step={0}
         async={injectData}
         done={done}
         aliasClick={aliasClick}
+        alias={alias}
         data={[
             [],
             [],
