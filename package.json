@@ -1,6 +1,7 @@
 {
-  "name": "sublime-command-palette",
-  "version": "0.0.11",
+  "name": "@code-sketch/sublime-command-palette",
+  "description": "> A sublime text-like command palette bulit on top of React",
+  "version": "0.0.12",
   "main": "dist/index.js",
   "scripts": {
     "start": "parcel index.html -p 2047",
